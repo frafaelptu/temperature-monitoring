@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
 
@@ -26,7 +27,7 @@ public class SensorMonitoringController {
 
 
     @GetMapping
-    public SensorMonitoringOutput getDetail(@PathVariable TSID sensorId){
+    public SensorMonitoringOutput getDetail(@PathVariable TSID sensorId) {
         SensorMonitoring sensorMonitoring = finadByIdOrDefault(sensorId);
         return SensorMonitoringOutput.builder()
                 .id(sensorMonitoring.getId().getValue())
@@ -48,8 +49,11 @@ public class SensorMonitoringController {
 
     @PutMapping("/enable")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void enabled(@PathVariable  TSID sensorId) {
+    public void enabled(@PathVariable TSID sensorId) {
         SensorMonitoring sensorMonitoring = finadByIdOrDefault(sensorId);
+        if (Boolean.TRUE.equals(sensorMonitoring.getEnabled())) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
+        }
         sensorMonitoring.setEnabled(true);
         sensorMonitoring.setUpdatedAt(OffsetDateTime.now());
         sensorMonitoringRepository.saveAndFlush(sensorMonitoring);
